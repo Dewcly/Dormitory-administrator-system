@@ -1,0 +1,33 @@
+# depslib dependency file v1.0
+1471679338 source:e:\cyuyan\curriculum design\practice\main.c
+	"dorm.h"
+
+1390554898 e:\cyuyan\curriculum design\practice\dorm.h
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<wincon.h>
+	<conio.h>
+	<string.h>
+	<io.h>
+	<fcntl.h>
+	<sys\stat.h>
+	<ctype.h>
+	<time.h>
+
+1473839986 source:e:\cyuyan\curriculum design\dormitory administrator system\main.c
+	"dorm.h"
+
+1474125419 e:\cyuyan\curriculum design\dormitory administrator system\dorm.h
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<wincon.h>
+	<conio.h>
+	<string.h>
+	<io.h>
+	<fcntl.h>
+	<sys\stat.h>
+	<ctype.h>
+	<time.h>
+

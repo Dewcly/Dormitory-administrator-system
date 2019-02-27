@@ -1,0 +1,118 @@
+#include"dorm.h"
+
+int main()
+{
+    COORD size={SCR_COL,SCR_ROW};   /*窗口缓冲区大小*/
+    WORD att=FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY|FOREGROUND_BLUE;
+    gh_std_out=GetStdHandle(STD_OUTPUT_HANDLE);   /*获取标准输出设备句柄*/
+    gh_std_in=GetStdHandle(STD_INPUT_HANDLE);    /*获取标准输入设备句柄*/
+    SetConsoleTitle(gp_sys_name);            /*设置窗口标题*/
+    SetConsoleScreenBufferSize(gh_std_out,size);     /*设置窗口缓冲区大下80*25*/
+    SetConsoleTextAttribute(gh_std_out,att);      /*设置黄色前景和蓝色背景*/
+    CleanScreen();                                /*清屏*/
+    ShowScreen();                                 /*显示系统主菜单*/
+    getch();
+    return 0;
+}
+void ShowMenu()
+{
+    CONSOLE_SCREEN_BUFFER_INFO bInfo;
+    CONSOLE_CURSOR_INFO lpCur;
+    COORD size;
+    COORD pos={0,0};
+    int i,j;
+    int PosA=2,PosB;
+    char ch;
+    GetConsoleScreenBufferInfo(gh_std_out,&bInfo);
+    size.X=bInfo.dwSize.X;
+    size.Y=1;
+    SetConsoleCursorPosition(gh_std_out,pos);
+    for(i=0;i<5;i++)          /*在窗口第一行第一列处输出主菜单项*/
+    {
+        printf("%s",ga_main_menu[i]);
+    }
+    GetConsoleCursorInfo(gh_std_out,&lpCur);
+    lpCur.bVisible=FALSE;
+    SetConsoleCursorInfo(gh_std_out,&lpCur);      /*隐藏光标*/
+    /*申请动态储存区作为存放菜单条屏幕区字符信息的缓冲区*/
+    gp_buff_menubar_info=(CHAR_INFO*)malloc(size.X*size.Y*sizeof(CHAR_INFO));
+    SMALL_RECT rcMenu={0,0,size.X-1,0};
+    /*将窗口第一行的内容读入到存放菜单条屏幕区字符信息的缓冲区中*/
+    ReadConsoleOutput(gh_std_out,gp_buff_menubar_info,size,pos,&rcMenu);
+    /*将这一行中英文字母置为红色，其他字符单元置为白底黑字*/
+    for(i=0;i<size.X;i++)
+    {
+        (gp_buff_menubar_info+i)->Attributes=BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_RED;
+        ch=(char)((gp_buff_menubar_info+i)->Char.AsciiChar);
+        if((ch>='A'&&ch<='Z')||(ch>='a'&&ch<='z'))
+        {
+            (gp_buff_menubar_info+i)->Attributes|=FOREGROUND_RED;
+        }
+    }
+    /*修改后的菜单条字符信息回写到窗口的第一行*/
+    WriteConsoleOutput(gh_std_out,gp_buff_menubar_info,size,pos,&rcMenu);
+    TagMainMenu(gi_sel_menu);
+    return;
+}
+void TagMianMenu(int num)
+{
+    CONSOLE_SCREEN_BUFFER_INFO bInfo;
+    COORD size;
+    COORD pos={0,0};
+    int PosA=2,PosB;
+    char ch;
+    int i;
+    if(num==0)  {PosA=0;PosB=0;}  /*num为0时，将会去除主菜单项选中标记*/
+    else
+    {
+        for(i=1;i<num;i++)
+        {
+            PosA+=strlen(ga_main_menu[i-1])+4;
+        }
+        PosB=PosA+strlen(ga_main_menu[num-1]);
+    }
+    GetConsoleScreenBufferInfo(gh_std_out,&bInfo);
+    size.X=bInfo.dwSize.X;
+    size.Y=1;
+    /*去除选中菜单项前面的菜单项选中标记*/
+    for(i=0;i<PosA;i++)
+    {
+        (gp_buff_menubar_info+i)->Attributes=BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_RED;
+        ch=(gp_buff_menubar_info+i)->Char.AsciiChar;
+        if((ch>='A'&&ch<='Z')||(ch>='a'&&ch<='z'))
+        {
+            (gp_buff_menubar_info+i)->Attributes|=FOREGROUND_RED;
+        }
+    }/*在选中菜单单项上做标记，白底黑字*/
+    for(i=PosA;i<PosB;i++)
+    {
+        (gp_buff_menubar_info+i)->Attributes=FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_RED;
+    }
+    /*去除选中菜单项后面的菜单项选中标记*/
+    for(i=PosB;i<bInfo.dwSize.X;i++)
+    {
+        (gp_buff_menubar_info+i)->Attributes=BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_RED;
+        ch=(char)((gp_buff_menubar_info+i)->Char.AsciiChar);
+        if((ch>='A'&&ch<='Z')||(ch>='a'&&ch<='z'))
+        {
+            (gp_buff_menubar_info+i)->Attributes|=FOREGROUND_RED;
+        }
+    }
+    /*将做好标记的菜单条信息写到窗口第一行*/
+    SMALL_RECT rcMenu={0,0,size.X-1,0};
+    WriteConsoleOutput(gh_std_out,gp_buff_menubar_info,size,pos,&rcMenu);
+    return;
+}
+void ClearScreen()
+{
+    CONSOLE_SCREEN_BUFFER_INFO bInfo;
+    COORD home={0,0};
+    unsigned long size;
+    GetConsoleScreenBufferInfo(gh_std_out,&bInfo);/*取屏幕缓冲区信息*/
+    size=bInfo.dwSize.X*bInfo.dwSize.Y;/*计算屏幕缓冲区字符单元数*/
+    /*将屏幕缓冲区所有单元的字符属性设置为当前屏幕缓冲区字符属性*/
+    FillConsoleOutputAttribute(gh_std_out,bInfo.wAttributes,size,home,NULL);
+    /*将屏幕缓冲区所有单元填充为空格字符*/
+    FillConsoleOutputCharacter(gh_std_out,'',size,home,NULL);
+    return;
+}
